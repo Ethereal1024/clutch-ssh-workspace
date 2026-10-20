@@ -1,0 +1,5 @@
+# Built by .github/workflows/release.yml (and by hand when you want to look
+# first). Both are release artifacts whose digests are pinned by
+# clutch-component.json — never committed, always rebuilt.
+clutch-ssh-workspace.tar.gz
+clutch-component.json

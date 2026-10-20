@@ -1,0 +1,7 @@
+# The release artifact is the component itself. `git archive` honours these, so
+# the release tooling — and this file — never rides along into a user's machine.
+# component.json / index.js / lib/ / README.md stay: that is the whole plugin.
+.github/ export-ignore
+scripts/ export-ignore
+.gitattributes export-ignore
+.gitignore export-ignore
