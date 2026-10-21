@@ -15,7 +15,7 @@ an ssh exec channel does not have: stdin.
 
 Why it exists: `agent/tools/catalog.py` has five `subject` words, and
 `foreign-fs` — "the other machine's filesystem" — had no component until this one
-(`COMPONENTS.md` §二; this file is the specification). Without it an ssh session can run
+(this file is the specification). Without it an ssh session can run
 commands but cannot read, search or write files: the component behind those tools
 (`clutch-workspace`, `workspace-fs`) serves only the machine the root is on, and
 refuses the rest with a sentence.
@@ -122,7 +122,7 @@ honestly reproduce. So, in phase 1:
   `scripts/ws-stopgap` before it: a write lands with that machine's own
   permissions and nothing finer.
 
-Two routes to a fence exist and neither is taken here (see `COMPONENTS.md` §三: one
+Two routes to a fence exist and neither is taken here (one
 process per call, so no daemon of ours to fence): extend `/call`'s body with a `fence` field (a contract change that deserves
 its own decision), or move "start the daemon" back to the host (S1), which needs a
 repackaged app and overlaps this component's job.
@@ -145,7 +145,7 @@ compared with `python -m clutch_workspace --json`'s own.
 
 ## Publish
 
-The module publishes its own release (`PLUGIN_PLAN.md` I1); the host ships no
+The module publishes its own release; the host ships no
 component bytes and only stores the URL in `ui/components.sources.json`.
 
 `.github/workflows/release.yml` owns that release. Push a `v*` tag whose number
