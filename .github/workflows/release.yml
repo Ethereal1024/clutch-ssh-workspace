@@ -8,17 +8,15 @@
 #   clutch-component.json        the manifest naming both, with their sha256
 #
 # The HOST repo holds none of this. It stores one URL — this release's manifest —
-# in ui/components.sources.json, and that is the entire coupling between the two
-# (agent/tools/catalog.py, and ui/components.sources.json). So this workflow
-# owns the artifact's shape, the
-# digest that pins it, and the version it declares: nothing here asks the host.
+# as this module's line in market/entries.json, and that is the entire coupling
+# between the two (scripts/market_index.py turns those lines into the one index
+# every client reads). So this workflow owns the artifact's shape, the digest
+# that pins it, and the version it declares: nothing here asks the host.
 #
-# Same shape as the other modules' workflows, with one difference that is worth
-# knowing: this component is a PLUGIN (interface "plugin", runs_on "other"), so
-# its release manifest must repeat `runs_on`. A packaged client has no checkout to
-# ask, and a manifest that leaves it out is offered in the market and then refused
-# on install — scripts/release-manifest.py treats that as a hard error, which is
-# why the manifest step below cannot silently ship without it.
+# Same shape as the other modules' workflows. This component's declaration names
+# an `entry` and no `launch`, which is the whole statement "its statements run on
+# the client, not on the machine at the other end of the tunnel"
+# (ui/components.js destinationOf) — the release manifest says nothing about it.
 #
 # `permissions: contents: write` is all a release needs — the run's own
 # GITHUB_TOKEN may create one, no personal token and no third-party action.

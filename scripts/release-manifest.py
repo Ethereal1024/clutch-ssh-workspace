@@ -3,28 +3,27 @@
 
 Usage: release-manifest.py <artifact.tar.gz> <component.json> <out.json> [--asset NAME]
 
-    {"schema": 1, "name": ..., "interface": ..., "runs_on": ...,
-     "version": ...,
+The manifest says what a release IS and where its bytes are:
+
+    {"schema": 1, "name": ..., "version": ...,
      "declaration": {"asset": "component.json", "sha256": "<64 hex>"},
      "artifacts": {"any": {"asset": "clutch-ssh-workspace.tar.gz", "sha256": "<64 hex>"}}}
 
-Why `runs_on` is in here, and why this script is not a copy of a generic one:
-`ui/components.js#parseManifest()` reads it off the RELEASE manifest, and the page
-derives where an install goes from `interface` + `runs_on` alone
-(`ui/components.js#destinationOf`). A packaged client has no checkout to ask, so a
-manifest that leaves it out falls back to "self" — and then the market answers
-
-    clutch-ssh-workspace is a plugin, so its implementation is this client:
-    its declaration has to say runs_on: "other", and this one says "self"
-
-i.e. the row is offered and cannot be installed. The declaration says it; this
-manifest has to repeat it. Both digests are sha256 of the BYTES AS PUBLISHED: the
-client downloads the artifact into a digest-named file and refuses anything that
-does not hash to the pin, so this script must run on exactly the files that will
-be uploaded, unmoved and unedited.
-
 Assets are named RELATIVE to the manifest (the release that holds it), so the same
 manifest works from a GitHub release, a mirror, or a directory on disk.
+
+The manifest repeats no word about WHICH KIND of component this is: the
+declaration it pins already says what the component contributes (`service`,
+`launch`, `entry`), and that is the whole answer to where its statements run
+(agent/tools/catalog.py Component, ui/components.js destinationOf). This one names
+an `entry` and no launch, so its statements are the client's own — said once, in
+the declaration, and never again here.
+
+Both digests are sha256 of the BYTES as published: the client verifies the
+artifact it downloads against `artifacts` before handing anything to a host, and
+verifies the declaration against `declaration`. A manifest whose digest does not
+match is refused, never guessed at — so this script must run on exactly the files
+that will be uploaded, unmoved and unedited.
 """
 
 from __future__ import annotations
@@ -36,7 +35,7 @@ import sys
 from pathlib import Path
 
 SCHEMA = 1
-REQUIRED = ("name", "interface", "version")
+REQUIRED = ("name", "version")
 
 
 def digest(path: Path) -> str:
@@ -70,32 +69,17 @@ def main() -> int:
             print(f"the declaration names no {field}", file=sys.stderr)
             return 1
 
-    # A plugin whose manifest does not repeat runs_on is uninstallable in the
-    # market (see the module docstring), so its absence is a hard error here
-    # rather than a field quietly left out.
-    runs_on = declared.get("runs_on")
-    if declared["interface"] == "plugin" and runs_on != "other":
-        print(
-            f"the declaration names runs_on {runs_on!r}; a plugin runs on this client, so the "
-            f"release manifest must say \"other\" (ui/components.js#destinationOf)",
-            file=sys.stderr,
-        )
-        return 1
-
     manifest = {
         "schema": SCHEMA,
         "name": declared["name"],
-        "interface": declared["interface"],
         "version": declared["version"],
         "declaration": {"asset": args.declaration.name, "sha256": digest(args.declaration)},
         "artifacts": {"any": {"asset": args.asset or args.artifact.name, "sha256": digest(args.artifact)}},
     }
-    if isinstance(runs_on, str) and runs_on:
-        manifest["runs_on"] = runs_on
     args.out.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    print(f"{args.out}: {manifest['name']} {manifest['version']} (runs_on {manifest.get('runs_on', '(unstated)')})")
+    print(f"{args.out}: {manifest['name']} {manifest['version']}")
     return 0
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main())

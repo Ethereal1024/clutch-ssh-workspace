@@ -4,7 +4,7 @@ The workspace's four file tools — `read_file`, `grep`, `write_file`, `edit_fil
 run on the machine that holds the workspace, over the ssh tunnel the client already
 has open.
 
-A **client plugin** (`interface: plugin`, `runs_on: other`, `subject: foreign-fs`).
+A **client plugin** (`entry: index.js`, `subject: foreign-fs`).
 It runs where the user sits and implements nothing itself: each call becomes one
 `ssh exec` on the far side, running *that machine's* `clutch-workspace` component
 (`python3 -m clutch_workspace --json <tool> …`). Line numbers, continuation hints,
@@ -22,9 +22,10 @@ refuses the rest with a sentence.
 
 ## Install
 
-Through the components page. `plugin` + `runs_on: other` places it in the **client**
-domain (`%LOCALAPPDATA%\clutch\client` on Windows, `~/.clutch/client` elsewhere),
-which is where a component that serves another machine belongs.
+Through the components page. A declaration with an `entry` and no `service`/`launch`
+places it in the **client** domain
+(`%LOCALAPPDATA%\clutch\client` on Windows, `~/.clutch/client` elsewhere), which is
+where a component that serves another machine belongs.
 
 Two facts about the declaration, both deliberate:
 
@@ -32,10 +33,11 @@ Two facts about the declaration, both deliberate:
   names**. The model's usage of `read_file`/`grep`/`write_file`/`edit_file` is
   already written in the system prompt, and an `ssh_` prefix would mean writing a
   second set of instructions for the same act.
-- it declares `subject: foreign-fs` and no `launch`, and its interface forces
-  `runs_on: other` (`catalog.component_diagnostics` treats `plugin` + `runs_on:
-  self` as fatal: for the one interface whose implementation the host cannot see,
-  "it runs here" is a claim with nothing behind it).
+- it declares `subject: foreign-fs`, no `service` and no `launch`, and the `entry`
+  module this client runs for each statement. That is the whole statement "no
+  process of this component runs on this machine" (`ui/components.js
+  destinationOf`); the host refuses `entry` together with a `launch`, because one
+  component cannot both run here and be the client's.
 
 Far side requirements, checked at every call:
 
@@ -146,7 +148,8 @@ compared with `python -m clutch_workspace --json`'s own.
 ## Publish
 
 The module publishes its own release; the host ships no
-component bytes and only stores the URL in `ui/components.sources.json`.
+component bytes and only stores the URL as this module's line in
+`market/entries.json`.
 
 `.github/workflows/release.yml` owns that release. Push a `v*` tag whose number
 equals `component.json`'s `version`, and the run checks the two agree, builds the
@@ -169,8 +172,8 @@ bash ../scripts/build-component-tar.sh . clutch-ssh-workspace.tar.gz
 python3 scripts/release-manifest.py clutch-ssh-workspace.tar.gz component.json clutch-component.json
 ```
 
-Then the host's sources gets one line:
-`…/releases/latest/download/clutch-component.json`. The manifest repeats
-`runs_on: "other"`: a packaged client has no checkout to ask, and a plugin's
-manifest that omits it is offered in the market and refused on install
-(`ui/components.js#destinationOf`). The script treats that as a hard error.
+Then the market gets one line:
+`…/releases/download/v<version>/clutch-component.json`, pinned to a version rather
+than `latest` (the index is what says which version is current — a `latest` URL
+would pin a moving document). The manifest names the bytes and nothing else: the
+declaration inside them is what says where the component goes.
