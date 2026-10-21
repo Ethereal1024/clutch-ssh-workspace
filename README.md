@@ -15,7 +15,7 @@ an ssh exec channel does not have: stdin.
 
 Why it exists: `agent/tools/catalog.py` has five `subject` words, and
 `foreign-fs` — "the other machine's filesystem" — had no component until this one
-(`SSH_WORKSPACE_PLAN.md`, `COMPONENTS.md` §二). Without it an ssh session can run
+(`COMPONENTS.md` §二; this file is the specification). Without it an ssh session can run
 commands but cannot read, search or write files: the component behind those tools
 (`clutch-workspace`, `workspace-fs`) serves only the machine the root is on, and
 refuses the rest with a sentence.
@@ -109,7 +109,7 @@ differences the shape of a plugin forces:
   far side's own words; a non-envelope answer is never mistaken for a result.
 - **no fence.** See below.
 
-## The fence (C9.5)
+## The fence
 
 This plugin does not start a daemon on the far side; it uses that machine's CLI. A
 daemon's fence is spawn-time policy handed down by the host (`rendezvous.py`), and
@@ -122,8 +122,8 @@ honestly reproduce. So, in phase 1:
   `scripts/ws-stopgap` before it: a write lands with that machine's own
   permissions and nothing finer.
 
-Two routes to a fence exist and neither is taken here (see `SSH_WORKSPACE_PLAN.md`
-Q3): extend `/call`'s body with a `fence` field (a contract change that deserves
+Two routes to a fence exist and neither is taken here (see `COMPONENTS.md` §三: one
+process per call, so no daemon of ours to fence): extend `/call`'s body with a `fence` field (a contract change that deserves
 its own decision), or move "start the daemon" back to the host (S1), which needs a
 repackaged app and overlaps this component's job.
 

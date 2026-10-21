@@ -5,8 +5,8 @@
 // `grep` / `write_file` / `edit_file` do not, because the component behind them
 // (`clutch-workspace`, subject `workspace-fs`) only serves the machine the root
 // is on, and the component for the other machine (`foreign-fs`) had never been
-// written. SSH_WORKSPACE_PLAN.md is that specification; this directory is the
-// implementation.
+// written. This directory is both the specification and the implementation
+// (README.md): there is no second document to drift from.
 //
 // ABI, exactly as every client plugin (ui/plugin-child.js):
 //
