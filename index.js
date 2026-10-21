@@ -10,7 +10,12 @@
 //
 // ABI, exactly as every client plugin (ui/plugin-child.js):
 //
-//   exports.call = async (tool, args) => string | {content, error?}
+//   exports.run = async (argv) => string | {content, error?}
+//
+// `argv` is the tool's `command` from component.json, rendered into words:
+// `argv[0]` = the tool's own name and `argv[1]` = the model's arguments as one
+// JSON string. `call(tool, args)` below is that pair unwrapped, kept as this
+// plugin's own shape.
 //
 // One forked process per call, so nothing here caches: every call asks the host
 // for the bridge address again, because a tunnel that died a second ago has no
@@ -126,4 +131,11 @@ async function call(tool, args) {
   }
 }
 
-module.exports = { call, TOOLS, envelopeOf, modelText };
+// The ABI (ui/plugin-child.js): argv is words, and the second one carries the
+// model's arguments. Every tool here takes one JSON object, so the unwrap is
+// this line.
+function run(argv) {
+  return call(argv[0], JSON.parse(argv[1] || "{}"));
+}
+
+module.exports = { call, run, TOOLS, envelopeOf, modelText };
